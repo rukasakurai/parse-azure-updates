@@ -7,12 +7,12 @@ import os
 def call_openai_chat(prompt):
     openai.api_type = "azure"
     openai.api_key = os.environ["OPENAI_API_KEY"]
-    openai.api_base = os.environ('OPENAI_API_ENDPOINT')
+    openai.api_base = os.environ['OPENAI_API_ENDPOINT']
     openai.api_version = "2023-03-15-preview"
 
     try:
         response = openai.ChatCompletion.create(
-          engine=os.environ('OPENAI_ENGINE'),
+          engine=os.environ['OPENAI_ENGINE'],
           model="gpt-3.5-turbo",  # specify the model you want to use
           messages=[{"role": "user", "content": prompt}]
         )
@@ -75,7 +75,8 @@ def main():
     all_data = []
 
     startpage = 1
-    for page in range(startpage, 9):  # Looping through pages
+    for page in range(startpage, 4):  # Looping through pages
+        print(f"Processing page {page}")
         full_url = base_url + str(page)
         soup = fetch_and_parse_html(full_url)
         if soup:
@@ -90,10 +91,12 @@ def main():
 
             # Call AI service for classification
             classification = call_ai_service_for_classification(description)
+            print(f"Classification: {classification}")
             data_row.append(classification)
 
             # Call AI service for product name
             product_name = call_ai_service_for_product_name(description)
+            print(f"Product Name: {product_name}")
             data_row.append(product_name)
 
     write_to_csv(all_data)
