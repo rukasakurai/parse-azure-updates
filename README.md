@@ -6,6 +6,15 @@ Azure UpdatesをCSVに出力します。
  * Public AccessがAllowされていること(リソース管理>ネットワークから確認)
  * (Azure AD認証を行う場合)認証する主体がAzure OpenAIサービスアカウントに対してCognitive Services OpenAI Userロールを持っていること
 
+### 作成されていない場合
+```
+az group create --name rg-parse-azure-updates --location japaneast
+
+az bicep upgrade
+
+az deployment group create --resource-group rg-parse-azure-updates --template-file ./infra/main.bicep
+```
+
 ## 使い方
 
 ### パッケージのインストール
