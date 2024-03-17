@@ -4,8 +4,9 @@ import csv
 import openai
 import os
 import time
+import argparse
 
-def call_openai_chat(prompt, retries=3, delay=5):
+def call_openai_chat(user_prompt, retries=3, delay=5):
     openai.api_type = "azure"
     openai.api_key = os.environ["OPENAI_API_KEY"]
     openai.api_base = os.environ['OPENAI_API_ENDPOINT']
@@ -16,7 +17,9 @@ def call_openai_chat(prompt, retries=3, delay=5):
             response = openai.ChatCompletion.create(
               engine=os.environ['OPENAI_ENGINE'],
               model="gpt-3.5-turbo",  # specify the model you want to use
-              messages=[{"role": "user", "content": prompt}]
+              messages=[
+                {"role": "user", "content": user_prompt}  # User prompt
+              ]
             )
             return response.choices[0].message['content']
         except openai.error.RateLimitError as e:
@@ -40,6 +43,19 @@ def call_ai_service_for_classification(description):
 
 def call_ai_service_for_product_name(description):
     return call_openai_chat("Please return the name of the Microsoft service (e.g., `Azure Kubernetes Service` that the following description is about (Only return a single name of the service and nothing else): " + description)
+
+def call_ai_service_for_implication(description, context):
+
+    prompt = f""""
+    Please return the implication of the `News` within the following JSON, and please take the `Context` in mind. Please do this in one or two sentences, and please be concise (e.g., no need to say "the implication of the news is").
+    
+    {{
+      News: {description},
+      Context: {context}
+    }}
+    """
+
+    return call_openai_chat(prompt)
 
 def fetch_and_parse_html(url):
     # Fetch HTML content from the URL
@@ -85,7 +101,7 @@ def write_to_csv(data, filename="azure_updates.csv"):
         for row in data[::-1]:  # This reverses the data list
             writer.writerow(row)
 
-def main():
+def main(context):
     base_url = "https://azure.microsoft.com/en-us/updates/?Page="
     all_data = []
 
@@ -114,7 +130,19 @@ def main():
             print(f"Product Name: {product_name}")
             data_row.append(product_name)
 
+            # Call AI service for implication
+            implication = call_ai_service_for_implication(description, context)
+            print(f"Implication: {implication}")
+            data_row.append(implication)
+
+            print("-------")
+
     write_to_csv(all_data)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Run the main method with an optional context parameter.")
+    parser.add_argument('--context', type=str, default="", help='The optional context parameter for the main method.')
+
+    args = parser.parse_args()
+
+    main(args.context)
