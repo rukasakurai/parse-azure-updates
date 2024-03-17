@@ -3,22 +3,37 @@ from bs4 import BeautifulSoup
 import csv
 import openai
 import os
+import time
 
-def call_openai_chat(prompt):
+def call_openai_chat(prompt, retries=3, delay=5):
     openai.api_type = "azure"
     openai.api_key = os.environ["OPENAI_API_KEY"]
     openai.api_base = os.environ['OPENAI_API_ENDPOINT']
-    openai.api_version = "2023-03-15-preview"
+    openai.api_version = "2024-03-01-preview"
 
-    try:
-        response = openai.ChatCompletion.create(
-          engine=os.environ['OPENAI_ENGINE'],
-          model="gpt-3.5-turbo",  # specify the model you want to use
-          messages=[{"role": "user", "content": prompt}]
-        )
-        return response.choices[0].message['content']
-    except Exception as e:
-        return str(e)
+    for attempt in range(retries):
+        try:
+            response = openai.ChatCompletion.create(
+              engine=os.environ['OPENAI_ENGINE'],
+              model="gpt-3.5-turbo",  # specify the model you want to use
+              messages=[{"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message['content']
+        except openai.error.RateLimitError as e:
+            # Handle rate limit errors specifically
+            if attempt < retries - 1:
+                print(f"Rate limit exceeded, retrying in {delay} seconds...")
+                time.sleep(delay)
+                continue
+            else:
+                return f"Rate limit exceeded, and retries limit reached. Error: {str(e)}"
+        except openai.OpenAIError as e:
+            # Handle other OpenAI specific errors
+            return f"OpenAI API error: {str(e)}"
+        except Exception as e:
+            # Handle unexpected errors
+            return f"Unexpected error: {str(e)}"
+    return "Request failed after retrying."
 
 def call_ai_service_for_classification(description):
     return call_openai_chat("Please categorize the following description as `GA`, `Preview`, or `Retire`: " + description)
@@ -67,7 +82,7 @@ def extract_information(soup):
 def write_to_csv(data, filename="azure_updates.csv"):
     with open(filename, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        for row in data:
+        for row in data[::-1]:  # This reverses the data list
             writer.writerow(row)
 
 def main():
