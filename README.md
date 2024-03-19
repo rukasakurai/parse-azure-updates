@@ -44,7 +44,11 @@ Azure OpenAIアカウントのリソース管理 > モデル デプロイ から
 python main.py
 ```
 
-特に引数は要りません。
+or 
+
+```bash
+python main.py --context "I develop and maintain applications at Contoso. At Contoso, our applications currently mainly run on Azure App Service, and we mainly use Azure SQL for our databases. While we currently do not use Azure's AI services, we are interested in potentially leveraging them in the future."
+```
 
 ### 既知バグ
 - Azure UpdatesのHTMLをparseしているため、Azure UpdatesのUI更新があると、おそらく機能しなくなります
