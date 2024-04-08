@@ -70,7 +70,7 @@ def fetch_and_parse_html(url):
 
 def extract_information(soup):
     # Find all update rows
-    updates = soup.find_all("div", class_="row update-row row-size6")
+    updates = soup.select("div.row.update-row.row-size6, div.row.update-row.row-divided.row-size2")
 
     extracted_data = []
     for update in updates:
@@ -106,7 +106,7 @@ def main(context):
     all_data = []
 
     startpage = 1
-    for page in range(startpage, 4):  # Looping through pages
+    for page in range(startpage, 2):  # Looping through pages
         print(f"Processing page {page}")
         full_url = base_url + str(page)
         soup = fetch_and_parse_html(full_url)

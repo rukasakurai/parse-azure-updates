@@ -52,7 +52,6 @@ python main.py --context "I develop and maintain applications at Contoso. At Con
 
 ### 既知バグ
 - Azure UpdatesのHTMLをparseしているため、Azure UpdatesのUI更新があると、おそらく機能しなくなります
-- Azure Updatesの各ページの1つ目のUpdateを拾うことができません
 - Azure OpenAIに生成されるカテゴリに表記のバラツキがあります（例: `GA`, `General Availability`）
 
 ### 参考
